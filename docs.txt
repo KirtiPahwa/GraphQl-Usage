@@ -1,0 +1,159 @@
+Graphql:
+(GraphQL is a query language and server-side runtime for application programming interfaces (APIs) that prioritizes giving clients exactly the data they request and no more. GraphQL is designed to make APIs fast, flexible, and developer-friendlyd)
+It is a query language that describes an api request. It is q query language that exist as a
+layer between your frontend and backend allowing you to expose the data that you sent from
+your server to your client in the format described by Graphql api. So the frontend will always
+be communicating with graphql and the backend will always also be communicating with graphql
+making it so that the frontend doesnt relyy need to know about the backend and vice versa for the backend.(Independency)
+Basics:
+-Schema
+-query
+-Mutation
+
+Graph api is divided into-
+1. Schema - (schema is not the same as databse schema, becuase graphql is completely indepedent from the database.).It is basicallly a way to describe how your api will work including what kind of data you recieve, kind of data you will send, what kind of data you will mutate. This is where you will descibe all of the types that you will create in your graphql api.
+For eg.,if your website is having user and want our graphql api to add get update the user. Then we need to create the type called user and put it inside of your schema.
+Every schema has 2 types: Query and mutation type.
+a. query type: fetching , reading the data.
+b. mutation type:update, delete, create the data from your api.
+When your schme has both it allows crud operation in your app.
+Eg., 
+schema{
+    query:Query, //get request
+    mutation:Mutation //post,put,delete 
+}
+
+type Query{
+    getAllUsers:[User]! // will return list of User.(type)
+    getUser(id:ID!):User // this will be come from the frontend (ID)
+}
+type Mutation{
+    createUser(input:CreateUserInput):User
+    updateUser(input:UpdateUserInput):User
+    deleteUser(input:DeleteUserInput):User
+}
+
+
+
+
+required types in shcmea:
+type User{
+    id:ID!,  // ! is used for required
+    firstname:String,
+    age:Int
+    job:Job
+}
+type Job{
+    id:ID!,
+    company:String
+}
+input CreateUserInput{
+    firstname:String!
+    age:Int!
+    job:Job!
+}
+
+
+
+
+
+(Information will be return as:
+
+data:[
+    {id:1,
+    firstname:"Kirti",
+    age:3,
+    job:{
+        id:1,
+        company:"Flexgem"
+    }}
+])
+
+Treat every mutation and query  as endpoint like in rest api.
+
+2. Resolvers:In resolvers file, we will write the resolver function  for every mutation.
+For eg., 
+Mutation:{
+craeteUser:(parent,args,context,info)=>{
+
+}
+}
+
+There are many libraries that facilitate the process. (Graphql+apollo+reactjs)
+
+
+Definition:Graphs ql is just a specification or tool around http. for how you get and recieve resource from the server. Normally we use rest and restful endpoints to do http request. But  graphql get rid of the whole idea of rest and all those differenct endpoints and gives us a singel enpoint and the way we determine what data you get back from that endpoint is based on the query  that  you send to that endpoint instead of  based on which endpoint you sent data to.
+
+
+Why use Graphql?:
+
+
+
+
+
+
+REST API:
+REST is a set of architectural constraints, not a protocol or a standard. API developers can implement REST in a variety of ways.
+
+When a client request is made via a RESTful API, it transfers a representation of the state of the resource to the requester or endpoint. This information, or representation, is delivered in one of several formats via HTTP: JSON (Javascript Object Notation), HTML, XLT, Python, PHP, or plain text. JSON is the most generally popular file format to use because, despite its name, it’s language-agnostic, as well as readable by both humans and machines. 
+
+
+
+
+
+Project:
+Problem : Imagin we have application that has books and authors of books (which are around 15). And books have name description , etc. So we are building application to accesss just the author name , and the books & their name for that particular authors.
+Solutions (REST API):
+1. 1st endpoints : /authors -- to get all the authors
+2. 2nd endpoint: /authors/:id/books  -- to get all the books for the specific author.
+-- Not optimised because: with the authors , we will be getting back the information like where the author lives and how the old the author is which we reallly don't want. 
+-- In 2nd endpoint: once  we have the list of the authors , we can take the id of each author . So for each we get back , we can call our server again to get the books for that particular author. And if we want books of the 5 authorrs. then we have to call the server for 5 more times. Each time i call that, i am getting all the information of the authors (extra information), that we really dont want .
+Note: So rest api is not better here, as we are getting the extra information and have to call the api many more  times.
+
+Soutions (GraphQL):
+Steps:
+1. We will compose the query of exactly the data we want. we will tell to graphql , that we want to get a list of all the author's name and want to get all the books of the authors. You tell the graphql the single query which will be very small. And the graphql server , is goint to parse the query and will send you back the required information which is needed in the query. (not the extra information).
+Advantage: Speed of api in this increases, The abililty to not only the query specific information , but also query nested information books insidd the authors. Without have to call the server many times, this can be done in the one call.
+-- We can specify into the query which information we want to back from the server.
+-- All functionalities of the rest api are also included in the graphql.
+Requirement for graphql server: node.js & express. 
+Dependeies: npm i expess express-graphql graphql
+
+
+Notes from this project:
+1. The reason i am wrapping the {} inside the field in the () , because i dont want to return anything here(We want to return multiple objects here) . This () will return everything inside the () , which is the single object.
+         fields:()=>({
+             message:{
+                type:GraphQLString
+            ,resolve:()=>'Hello World'}
+         })
+
+2. const AuthorType=new GraphQLObjectType({
+    name:'Author',
+    description:'This represents author of a book',
+    fields:{
+        id:{type:new GraphQLNonNull(GraphQLInt)},
+        name:{type:new GraphQLNonNull(GraphQLString)},
+        books:{type:new GraphQLList(BookType),
+        resolve:(author)=>{
+            return books.filter(book =>book.authorId===author.id);
+        }}
+    }
+})
+
+Note: If you return single object in the fields in all the types , then the error will be come: BookType inside the authorType is not defined . That's because we have defined the Authortype above the BookType. So if we defind BookType above the AuthorType, then error will be : AuthorType inside the BookType is not defined. Solution: Therefore we are not returning the object in the fields section . We are just calling the function inside the fields property. So that before calling the function , everything should be defined. Becuse function will only call on calling . But if we return simply the object, then at the time of declaration, this not-defined error will come.
+
+3. By default , if we dont mention anything while fetching the data or creating the queries or mutiaon on the GraphQL sever. Then by default , if we dont give any name then it will be query.
+Eg., {
+    books
+}
+is equal to 
+query{
+    books
+}
+
+But we have to mention while calling the muations:
+Eg., muations{
+    addBooks{}
+}
+ 
